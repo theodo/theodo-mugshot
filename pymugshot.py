@@ -44,12 +44,24 @@ def detectFace(imcolor):
 
     return faceRectangles[0][0]
 
-def detectEyes(imcolor):
+def detectEyes(imcolor, face=None):
     """
     Returns the rectangles around the two most visible eyes in the image
     """
 
-    eyeRectangles = detectRectangles(imcolor, 'haarcascade_eye.xml')
+    eyeRectangles0 = detectRectangles(imcolor, 'haarcascade_eye.xml')
+    if face:
+        eyeRectangles = []
+        for eyeRectangle in eyeRectangles0:
+            if eyeRectangle[0][0] > face[0] and \
+               eyeRectangle[0][1] > face[1] and \
+               eyeRectangle[0][0] + eyeRectangle[0][2] < face[0] + face[2] and \
+               eyeRectangle[0][1] + eyeRectangle[0][3] < face[1] + face[3] and \
+               (len(eyeRectangles) < 1 or min(abs(eyeRectangle[0][0] - teyeRectangle[0][0]) for teyeRectangle in eyeRectangles) > 10):
+                eyeRectangles.append(eyeRectangle)
+    else:
+        eyeRectangles = eyeRectangles0
+
 
     if len(eyeRectangles) < 2:
         return None
@@ -66,14 +78,21 @@ def geteyescenter(eyes):
         (eyes[0][1] + eyes[0][3]/2 + eyes[1][1] + eyes[1][3]/2) / 2
         )
 
-    return eyescenter
+    return eyescenter # Kenny:(700, 820)
 
-def cropAroundFaceAndEyes(image, face, eyes, idealfacewidth, idealeyecenter):
+def cropAroundFaceAndEyes(image, face, eyes, idealfacewidth, idealeyecenter, enlargeface=True):
     """
     Crops an image using ideal face width and ideal eyes position
     """
 
     center = geteyescenter(eyes)
+
+    minleft = idealeyecenter[0] * face[3] / center[0]
+    mintop  = idealeyecenter[1] * face[3] / center[1]
+    if max(minleft, mintop) > idealfacewidth and enlargeface:
+        print 'idealfacewidth too small: ', idealfacewidth
+        idealfacewidth = max(minleft, mintop) + 0.01
+        print 'applying instead: ', idealfacewidth
 
     size = int(face[3] / idealfacewidth)
     left = int(center[0] - idealeyecenter[0] * size)
@@ -85,3 +104,16 @@ def cropAroundFaceAndEyes(image, face, eyes, idealfacewidth, idealeyecenter):
         raise Exception('Face on original picture is too big for this ideal face width ratio. Minimum: ' + str(max(minleft, mintop)))
 
     return image[top:(top + size), left:(left + size)]
+
+
+def mugshotify(input_filename, output_filename, imagesize, idealfacewidth, idealeyecenter):
+    source = cv2.imread(input_filename)
+
+    face = detectFace(source)
+    eyes = detectEyes(source, face)
+
+    cropped = cropAroundFaceAndEyes(source, face, eyes, idealfacewidth, idealeyecenter)
+    resized = cv2.resize(cropped, (imagesize, imagesize), interpolation=cv2.INTER_AREA)
+    merged  = appendGreyAndColorVersions(resized)
+
+    cv2.imwrite(output_filename, merged)
