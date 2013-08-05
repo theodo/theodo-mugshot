@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+import sys
+import argparse
+import cv2
+import numpy
+import theodoimage
+
+def float_pair(strinput):
+    return [float(elt) for elt in strinput.split(',')]
+
+def parseargs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--imagesize', help='destination image size', type=int, default=140)
+    parser.add_argument('--idealfacewidth', help='desired face width ratio', type=float, default=0.61803397)
+    parser.add_argument('--idealeyecenter', help='desired eye center position', type=float_pair, default=(0.5, 0.46))
+    parser.add_argument('input', help='input image')
+    parser.add_argument('-o', '--output', help='output image')
+    return parser.parse_args()
+
+def mugshotify(input_filename, output_filename, imagesize, idealfacewidth, idealeyecenter):
+    source = cv2.imread(input_filename)
+
+    face = theodoimage.detectFace(source)
+    eyes = theodoimage.detectEyes(source)
+
+    cropped = theodoimage.cropAroundFaceAndEyes(source, face, eyes, idealfacewidth, idealeyecenter)
+    resized = cv2.resize(cropped, (imagesize, imagesize))
+    merged  = theodoimage.appendGreyAndColorVersions(resized)
+
+    cv2.imwrite(output_filename, merged)
+
+def main():
+    args = parseargs()
+    output_filename = args.output
+    if not output_filename:
+        output_filename = 'mugshot_' + args.input
+
+    mugshotify(args.input, output_filename, args.imagesize, args.idealfacewidth, args.idealeyecenter)
+
+
+if __name__ == "__main__":
+    main()
