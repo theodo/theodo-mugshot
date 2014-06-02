@@ -36,6 +36,8 @@ def recursive(args):
     for root, subFolders, files in os.walk(args.input):
         for file in files:
             underscore_position = file.find('_')
+            if underscore_position == -1:
+                underscore_position = file.find('.')
             output_filename = str(file)
             output_filename = output_filename[0:underscore_position] + '.png'
             output_filename = output_dir + output_filename

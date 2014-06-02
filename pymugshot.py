@@ -80,39 +80,39 @@ def geteyescenter(eyes):
 
     return eyescenter # Kenny:(700, 820)
 
-def cropAroundFaceAndEyes(image, face, eyes, idealfacewidth, idealeyecenter, enlargeface=True):
+def cropAroundFaceAndEyes(image, face, eyes, idealFaceWidth, idealEyesCenter, enlargeFace=True):
     """
     Crops an image using ideal face width and ideal eyes position
     """
 
-    center = geteyescenter(eyes)
+    eyesCenter = geteyescenter(eyes)
 
-    minleft = idealeyecenter[0] * face[3] / center[0]
-    mintop  = idealeyecenter[1] * face[3] / center[1]
-    if max(minleft, mintop) > idealfacewidth and enlargeface:
-        print 'idealfacewidth too small: ', idealfacewidth
-        idealfacewidth = max(minleft, mintop) + 0.01
-        print 'applying instead: ', idealfacewidth
+    minleft = idealEyesCenter[0] * face[3] / eyesCenter[0]
+    mintop  = idealEyesCenter[1] * face[3] / eyesCenter[1]
+    if max(minleft, mintop) > idealFaceWidth and enlargeFace:
+        print 'idealFaceWidth too small: ', idealFaceWidth
+        idealFaceWidth = max(minleft, mintop) + 0.01
+        print 'applying instead: ', idealFaceWidth
 
-    size = int(face[3] / idealfacewidth)
-    left = int(center[0] - idealeyecenter[0] * size)
-    top  = int(center[1] - idealeyecenter[1] * size)
+    resultWidth = int(face[3] / idealFaceWidth)
+    left = int(eyesCenter[0] - idealEyesCenter[0] * resultWidth)
+    top  = int(eyesCenter[1] - idealEyesCenter[1] * resultWidth)
 
     if left < 0 or top < 0:
-        minleft = idealeyecenter[0] * face[3] / center[0]
-        mintop  = idealeyecenter[1] * face[3] / center[1]
+        minleft = idealEyesCenter[0] * face[3] / eyesCenter[0]
+        mintop  = idealEyesCenter[1] * face[3] / eyesCenter[1]
         raise Exception('Face on original picture is too big for this ideal face width ratio. Minimum: ' + str(max(minleft, mintop)))
 
-    return image[top:(top + size), left:(left + size)]
+    return image[top:(top + resultWidth), left:(left + resultWidth)]
 
 
-def mugshotify(input_filename, output_filename, imagesize, idealfacewidth, idealeyecenter):
+def mugshotify(input_filename, output_filename, imagesize, idealFaceWidth, idealEyesCenter):
     source = cv2.imread(input_filename)
 
     face = detectFace(source)
     eyes = detectEyes(source, face)
 
-    cropped = cropAroundFaceAndEyes(source, face, eyes, idealfacewidth, idealeyecenter)
+    cropped = cropAroundFaceAndEyes(source, face, eyes, idealFaceWidth, idealEyesCenter)
     resized = cv2.resize(cropped, (imagesize, imagesize), interpolation=cv2.INTER_AREA)
     merged  = appendGreyAndColorVersions(resized)
 
