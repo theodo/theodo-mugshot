@@ -16,14 +16,14 @@ def parseargs():
     parser.add_argument('--idealeyecenter', help='desired eye center position', type=float_pair, default=(0.5, 0.46))
     parser.add_argument('input', help='input image')
     parser.add_argument('-o', '--output', help='output image')
-    parser.add_argument('-r', '--recursive', help='process the whole directory')
+    parser.add_argument('-r', '--recursive', action='store_true', help='process the whole directory')
     parser.add_argument('--coloronly', action='store_true', help='Do not merge with gray version')
     return parser.parse_args()
 
 def main():
     args = parseargs()
     output_filename = args.output
-    if args.recursive == 'true':
+    if args.recursive:
         recursive(args)
     else:
         if not output_filename:
