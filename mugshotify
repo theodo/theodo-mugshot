@@ -17,6 +17,7 @@ def parseargs():
     parser.add_argument('input', help='input image')
     parser.add_argument('-o', '--output', help='output image')
     parser.add_argument('-r', '--recursive', help='process the whole directory')
+    parser.add_argument('--coloronly', action='store_true', help='Do not merge with gray version')
     return parser.parse_args()
 
 def main():
@@ -28,7 +29,7 @@ def main():
         if not output_filename:
             output_filename = 'mugshot_' + args.input
 
-        pymugshot.mugshotify(args.input, output_filename, args.imagesize, args.idealfacewidth, args.idealeyecenter)
+        pymugshot.mugshotify(args.input, output_filename, args.imagesize, args.idealfacewidth, args.idealeyecenter, not args.coloronly)
 
 
 def recursive(args):
@@ -43,7 +44,7 @@ def recursive(args):
             output_filename = output_dir + output_filename
             print file, '->', output_filename
             try:
-                pymugshot.mugshotify(os.path.join(root, file), output_filename, args.imagesize, args.idealfacewidth, args.idealeyecenter)
+                pymugshot.mugshotify(os.path.join(root, file), output_filename, args.imagesize, args.idealfacewidth, args.idealeyecenter, not args.coloronly)
             except:
                 print "Unexpected error:", sys.exc_info()[0]
 

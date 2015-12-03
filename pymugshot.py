@@ -106,7 +106,7 @@ def cropAroundFaceAndEyes(image, face, eyes, idealFaceWidth, idealEyesCenter, en
     return image[top:(top + resultWidth), left:(left + resultWidth)]
 
 
-def mugshotify(input_filename, output_filename, imagesize, idealFaceWidth, idealEyesCenter):
+def mugshotify(input_filename, output_filename, imagesize, idealFaceWidth, idealEyesCenter, appendGrey = True):
     source = cv2.imread(input_filename)
 
     face = detectFace(source)
@@ -114,6 +114,9 @@ def mugshotify(input_filename, output_filename, imagesize, idealFaceWidth, ideal
 
     cropped = cropAroundFaceAndEyes(source, face, eyes, idealFaceWidth, idealEyesCenter)
     resized = cv2.resize(cropped, (imagesize, imagesize), interpolation=cv2.INTER_AREA)
-    merged  = appendGreyAndColorVersions(resized)
+    if appendGrey:
+        merged  = appendGreyAndColorVersions(resized)
+    else:
+        merged = resized
 
     cv2.imwrite(output_filename, merged)
